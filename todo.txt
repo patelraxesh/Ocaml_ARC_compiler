@@ -1,0 +1,71 @@
+- [x] Get rid of GC code
+- [x] Disable optimizations
+- [ ] We need to build a freelist
+  - [ ] Add things
+  - [ ] Remove things
+  - [ ] Putting blocks back together
+- [ ] We need to verify that things are being pulled into the right parts of the heap / that our estimates of sizing are right / that our padding is right
+  - [x] The heap is dealt with properly
+  - [ ] The stack is dealt with properly
+- [x] Tuples and closures need to have reference counts
+
+- DON'T write an IR. Write a set of macros that sit inside the instruction-space / have a type in which things may be instructions OR macros.
+Let x = foo => let x = foo in -> if the reference count is 0,
+
+- [ ] Write the new IR:
+  - [ ] Have an initial zero reference count. (We'll 'deal,' I suppose)
+  - [ ] Add set_count / inc / dec grammar / functionality
+  - [ ] We need to, when let-binding, increment the reference count
+  - [ ] When something leaves scope, decrement the reference count????
+  - [ ] If we return the thing we just allocated, don't drop the reference count
+  - [ ] Otherwise, we should
+  - [ ] When the reference count goes to zero, we need to deallocate
+
+Broken from last time:
+- [ ] Closing over gives wrong answers (and sometimes crashes)
+- [x] Tuples are broken
+- [ ] ESeq?????
+- [ ] Recursive functions are broken at least sometimes
+- [x] GC
+- [x] TBH I’m not *that* confident in tuple mutation either
+
+
+
+
+
+
+
+
+
+
+
+
+Notes:
+
+let x = (5, 4) in
+let p = (n) -> x[0] + n
+
+let z =
+  (let x = (5, 4) in // x's reference count is 1 here
+  let p = (n) -> x[0] + n; in
+  (decrement(x, p)
+z(5)
+decrement(z)
+
+
+decrementing—when to do it?
+ - recursively
+ - when removed from a tuple
+ - when the thing goes out of scope
+
+A possibility:
+- when a closed over * is deallocated, it gets decremented automatically?
+- when removed from a tuple, it happens automatically
+- when it goes out of scope, it happens manually?
+- when there's a cycle, it happens manually? (how?)
+
+or:
+
+we add deallocators on tuples *and* closures
+- that could consist of all the items that need to be deallocated?
+- or that are full functions?
